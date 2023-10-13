@@ -20,13 +20,17 @@ class producer(Process):
         sleep_interval=10,
     ):
         # username, password, queue, ampq_url, port, log_file, exchange="", routing_key="default", sleep_interval=5
-        super().__init__(exchange, log_file, log_level, queue_suffix, exchange_type)
-
-        self._message_queue = message_queue
-
-        self._sleep_interval = sleep_interval
-
-        self._routing_key = routing_key
+        super().__init__(
+            message_queue,
+            routing_key,
+            exchange,
+            configuration,
+            log_file,
+            log_level,
+            queue_suffix,
+            exchange_type,
+            sleep_interval=sleep_interval,
+        )
 
         self._deliveries = None
         self._acked = None
@@ -34,14 +38,6 @@ class producer(Process):
         self._message_number = None
 
         self._stopping = False
-
-        self._parameters = pika.ConnectionParameters(
-            host=configuration.ampq_url,
-            port=configuration.port,
-            credentials=pika.PlainCredentials(
-                username=configuration.username, password=configuration.password
-            ),
-        )
 
         self._message_properties = pika.BasicProperties(
             content_type="json", delivery_mode=2

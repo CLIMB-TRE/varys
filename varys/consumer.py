@@ -22,9 +22,17 @@ class consumer(Process):
         sleep_interval=10,
         reconnect=True,
     ):
-        super().__init__(exchange, log_file, log_level, queue_suffix, exchange_type)
-
-        self._messages = message_queue
+        super().__init__(
+            message_queue,
+            routing_key,
+            exchange,
+            configuration,
+            log_file,
+            log_level,
+            queue_suffix,
+            exchange_type,
+            sleep_interval=sleep_interval,
+        )
 
         self._should_reconnect = reconnect
         self._reconnect_delay = 10
@@ -32,17 +40,6 @@ class consumer(Process):
         self._consumer_tag = None
         self._consuming = False
         self._prefetch_count = prefetch_count
-
-        self._routing_key = routing_key
-        self._sleep_interval = sleep_interval
-
-        self._parameters = pika.ConnectionParameters(
-            host=configuration.ampq_url,
-            port=configuration.port,
-            credentials=pika.PlainCredentials(
-                username=configuration.username, password=configuration.password
-            ),
-        )
 
     def _on_connection_open_error(self, _unused_connection, err):
         self._log.error(f"Failed to connect to server due to error: {err}")
@@ -117,7 +114,7 @@ class consumer(Process):
         self._log.info(
             f"Received Message: # {message.basic_deliver.delivery_tag} from {message.properties.app_id}, {message.body}"
         )
-        self._messages.put(message)
+        self._message_queue.put(message)
 
     def _acknowledge_message(self, delivery_tag):
         self._log.info(f"Acknowledging message: {delivery_tag}")

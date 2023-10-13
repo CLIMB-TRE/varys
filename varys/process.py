@@ -8,16 +8,22 @@ import pika
 class Process(Thread):
     def __init__(
         self,
+        message_queue,
+        routing_key,
         exchange,
+        configuration,
         log_file,
         log_level,
         queue_suffix,
         exchange_type,
+        sleep_interval=10,
     ):
         super().__init__()
 
         Thread.daemon = True
 
+        self._message_queue = message_queue
+        self._routing_key = routing_key
         self._exchange = exchange
         self._queue = exchange + "." + queue_suffix
         self._log_file = log_file  # so we know which file handle to drop when we stop
@@ -25,6 +31,8 @@ class Process(Thread):
 
         self._connection = None
         self._channel = None
+
+        self._sleep_interval = sleep_interval
 
         if exchange_type == "fanout":
             self._exchange_type = pika.exchange_type.ExchangeType.fanout
@@ -38,6 +46,14 @@ class Process(Thread):
             raise ValueError(
                 "Exchange type must be one of: fanout, topic, direct, headers"
             )
+
+        self._parameters = pika.ConnectionParameters(
+            host=configuration.ampq_url,
+            port=configuration.port,
+            credentials=pika.PlainCredentials(
+                username=configuration.username, password=configuration.password
+            ),
+        )
 
     def _setup_logger(self, log_level):
         name = self._exchange
