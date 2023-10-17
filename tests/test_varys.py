@@ -65,6 +65,7 @@ class TestVarys(unittest.TestCase):
         varys_client.acknowledge_message(message)
         # Manually close to prevent hanging
         varys_client.close()
+        time.sleep(0.1)
 
     def test_send_and_receive_batch(self):
         self.v.send(TEXT, "test_varys", queue_suffix="q")
