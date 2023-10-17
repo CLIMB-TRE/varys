@@ -64,6 +64,7 @@ class TestVarys(unittest.TestCase):
 
         varys_client.acknowledge_message(message)
         # Manually close to prevent hanging
+        time.sleep(0.1)
         varys_client.close()
         time.sleep(0.1)
 
