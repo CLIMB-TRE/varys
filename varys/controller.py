@@ -50,6 +50,7 @@ class varys:
         log_level="DEBUG",
         config_path=None,
         routing_key="arbitrary_string",
+        auto_acknowledge=True,
     ):
         self.profile = profile
 
@@ -59,6 +60,7 @@ class varys:
         self.configuration_path = config_path
 
         self.routing_key = routing_key
+        self.auto_ack = auto_acknowledge
 
         self._logfile = logfile
         self._log_level = log_level
@@ -129,10 +131,11 @@ class varys:
             message = self._in_channels[exchange]["queue"].get(
                 block=block, timeout=timeout
             )
-            # Only ack a message when it is pulled out of the thread-safe queue
-            self._in_channels[exchange]["varys_obj"]._acknowledge_message(
-                message.basic_deliver.delivery_tag
-            )
+            if self.auto_ack:
+                # Only ack a message when it is pulled out of the thread-safe queue and auto_ack is set
+                self._in_channels[exchange]["varys_obj"]._acknowledge_message(
+                    message.basic_deliver.delivery_tag
+                )
             return message
         except queue.Empty:
             return None
@@ -170,14 +173,24 @@ class varys:
                 message = self._in_channels[exchange]["queue"].get(
                     block=True, timeout=1
                 )
-                self._in_channels[exchange]["varys_obj"]._acknowledge_message(
-                    message.basic_deliver.delivery_tag
-                )
+                if self.auto_ack:
+                    self._in_channels[exchange]["varys_obj"]._acknowledge_message(
+                        message.basic_deliver.delivery_tag
+                    )
                 messages.append(message)
             except queue.Empty:
                 break
 
         return messages
+    
+    def acknowledge_message(self, message):
+        """
+        Acknowledge a message manually. Not necessary by default where auto_acknowledge is set to True.
+        """
+
+        self._in_channels[message.basic_deliver.exchange]["varys_obj"]._acknowledge_message(
+            message.basic_deliver.delivery_tag
+        )
 
     def get_channels(self):
         """Return all open channels."""

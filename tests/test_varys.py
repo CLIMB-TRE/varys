@@ -55,6 +55,17 @@ class TestVarys(unittest.TestCase):
         logger = logging.getLogger("test_varys")
         self.assertEqual(len(logger.handlers), 1)
 
+    def test_manual_ack(self):
+        varys_client = varys("test", LOG_FILENAME, config_path=TMP_FILENAME, auto_acknowledge=False)
+
+        varys_client.send(TEXT, "test_varys", queue_suffix="q")
+
+        message = varys_client.receive("test_varys", queue_suffix="q")
+
+        varys_client.acknowledge_message(message)
+        # Manually close to prevent hanging
+        varys_client.close()
+
     def test_send_and_receive_batch(self):
         self.v.send(TEXT, "test_varys", queue_suffix="q")
         self.v.send(TEXT, "test_varys", queue_suffix="q")
