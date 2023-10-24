@@ -56,13 +56,34 @@ class TestVarys(unittest.TestCase):
         self.assertEqual(len(logger.handlers), 1)
 
     def test_manual_ack(self):
-        varys_client = varys("test", LOG_FILENAME, config_path=TMP_FILENAME, auto_acknowledge=False)
+        varys_client = varys(
+            "test", LOG_FILENAME, config_path=TMP_FILENAME, auto_acknowledge=False
+        )
 
         varys_client.send(TEXT, "test_varys", queue_suffix="q")
 
         message = varys_client.receive("test_varys", queue_suffix="q")
 
         varys_client.acknowledge_message(message)
+        # Manually close to prevent hanging
+        time.sleep(0.1)
+        varys_client.close()
+        time.sleep(0.1)
+
+    def test_nack(self):
+        varys_client = varys(
+            "test", LOG_FILENAME, config_path=TMP_FILENAME, auto_acknowledge=False
+        )
+
+        varys_client.send(TEXT, "test_varys", queue_suffix="q")
+
+        message = varys_client.receive("test_varys", queue_suffix="q")
+
+        varys_client.nack_message(message)
+
+        message_2 = varys_client.receive("test_varys", queue_suffix="q")
+
+        self.assertEqual(message.body, message_2.body)
         # Manually close to prevent hanging
         time.sleep(0.1)
         varys_client.close()
