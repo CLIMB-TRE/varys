@@ -203,7 +203,7 @@ class varys:
             )
 
         self._in_channels[message.basic_deliver.exchange]["varys_obj"]._nack_message(
-            message.basic_deliver.delivery_tag
+            delivery_tag=message.basic_deliver.delivery_tag
         )
 
     def get_channels(self):
