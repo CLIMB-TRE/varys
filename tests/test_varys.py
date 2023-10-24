@@ -5,6 +5,7 @@ import os
 import json
 import logging
 from varys import varys
+import pika
 
 DIR = os.path.dirname(__file__)
 LOG_FILENAME = os.path.join(DIR, "test.log")
@@ -38,6 +39,17 @@ class TestVarys(unittest.TestCase):
         # that we try to close the connections before they've opened
         # 0.01s seems to be sufficient; 0.1s is just a bit conservative
         time.sleep(0.1)
+
+        credentials = pika.PlainCredentials("guest", "guest")
+
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters("localhost", credentials=credentials)
+        )
+        channel = connection.channel()
+
+        channel.queue_delete(queue="test_varys")
+
+        connection.close()
 
         self.v.close()
         os.remove(TMP_FILENAME)
@@ -73,8 +85,7 @@ class TestVarys(unittest.TestCase):
 
         self.v.nack_message(message)
 
-        time.sleep(2)
-
+        # check that the message has been requeued
         message_2 = self.v.receive("test_varys", queue_suffix="q")
 
         self.assertEqual(message.body, message_2.body)
