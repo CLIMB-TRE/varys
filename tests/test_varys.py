@@ -88,6 +88,8 @@ class TestVarys(unittest.TestCase):
         # check that the message has been requeued
         message_2 = self.v.receive("test_varys", queue_suffix="q")
 
+        self.v.acknowledge_message(message_2)
+
         self.assertEqual(message.body, message_2.body)
 
     def test_send_and_receive_batch(self):
@@ -98,7 +100,9 @@ class TestVarys(unittest.TestCase):
         self.assertListEqual([TEXT, TEXT], parsed_messages)
 
     def test_receive_no_message(self):
-        self.assertIsNone(self.v.receive("test_varys", queue_suffix="q", timeout=1))
+        self.assertIsNone(
+            self.v.receive("test_varys_no_message", queue_suffix="q", timeout=1)
+        )
 
     def test_send_no_suffix(self):
         self.assertRaises(Exception, self.v.send, TEXT, "test_varys")
