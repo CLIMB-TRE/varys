@@ -182,6 +182,15 @@ class varys:
                 break
 
         return messages
+    
+    def acknowledge_message(self, message):
+        """
+        Acknowledge a message manually. Not necessary by default where auto_acknowledge is set to True.
+        """
+
+        self._in_channels[message.basic_deliver.exchange]["varys_obj"]._acknowledge_message(
+            message.basic_deliver.delivery_tag
+        )
 
     def acknowledge_message(self, message):
         """

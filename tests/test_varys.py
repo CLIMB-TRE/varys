@@ -68,6 +68,7 @@ class TestVarys(unittest.TestCase):
         self.assertEqual(len(logger.handlers), 1)
 
     def test_manual_ack(self):
+
         self.v.auto_ack = False
 
         self.v.send(TEXT, "test_varys", queue_suffix="q")
