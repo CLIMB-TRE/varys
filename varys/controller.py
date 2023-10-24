@@ -182,13 +182,27 @@ class varys:
                 break
 
         return messages
-    
+
     def acknowledge_message(self, message):
         """
         Acknowledge a message manually. Not necessary by default where auto_acknowledge is set to True.
         """
 
-        self._in_channels[message.basic_deliver.exchange]["varys_obj"]._acknowledge_message(
+        self._in_channels[message.basic_deliver.exchange][
+            "varys_obj"
+        ]._acknowledge_message(message.basic_deliver.delivery_tag)
+
+    def nack_message(self, message):
+        """
+        Nack a message manually. Can be used to requeue a message if auto_acknowledge is set to False.
+        """
+
+        if self.auto_ack:
+            raise Exception(
+                "Cannot nack a message when auto_acknowledge is set to True"
+            )
+
+        self._in_channels[message.basic_deliver.exchange]["varys_obj"]._nack_message(
             message.basic_deliver.delivery_tag
         )
 
