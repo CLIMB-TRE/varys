@@ -73,6 +73,12 @@ class TestVarys(unittest.TestCase):
 
         self.v.nack_message(message)
 
+        time.sleep(2)
+
+        message_2 = self.v.receive("test_varys", queue_suffix="q")
+
+        self.assertEqual(message.body, message_2.body)
+
     def test_send_and_receive_batch(self):
         self.v.send(TEXT, "test_varys", queue_suffix="q")
         self.v.send(TEXT, "test_varys", queue_suffix="q")
