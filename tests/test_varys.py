@@ -83,11 +83,12 @@ class TestVarys(unittest.TestCase):
 
         message_2 = varys_client.receive("test_varys", queue_suffix="q")
 
-        self.assertEqual(message.body, message_2.body)
-        # Manually close to prevent hanging
         time.sleep(0.1)
         varys_client.close()
         time.sleep(0.1)
+
+        self.assertEqual(message.body, message_2.body)
+        # Manually close to prevent hanging
 
     def test_send_and_receive_batch(self):
         self.v.send(TEXT, "test_varys", queue_suffix="q")
