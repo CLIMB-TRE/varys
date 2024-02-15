@@ -16,9 +16,9 @@ class Consumer(Process):
         log_level,
         queue_suffix,
         exchange_type,
+        prefetch_count,
         routing_key="arbitrary_string",
         reconnect_wait=10,
-        prefetch_count=5,
     ):
         super().__init__(
             message_queue,
@@ -77,9 +77,15 @@ class Consumer(Process):
                     durable=True,
                 )
                 self._channel.queue_declare(queue=self._queue, durable=True)
-                self._channel.queue_bind(queue=self._queue, exchange=self._exchange, routing_key=self._routing_key)
+                self._channel.queue_bind(
+                    queue=self._queue,
+                    exchange=self._exchange,
+                    routing_key=self._routing_key,
+                )
                 self._channel.basic_qos(prefetch_count=self._prefetch_count)
-                self._channel.basic_consume(self._queue, self._on_message, auto_ack=False)
+                self._channel.basic_consume(
+                    self._queue, self._on_message, auto_ack=False
+                )
                 self._channel.start_consuming()
             except Exception as e:
                 self._log.exception("Consumer caught exception:")
@@ -94,17 +100,11 @@ class Consumer(Process):
         self._log.info("Stopping consumer as instructed...")
         self._stopping = True
 
-        self._connection.add_callback_threadsafe(
-            self._channel.stop_consuming
-        )
+        self._connection.add_callback_threadsafe(self._channel.stop_consuming)
 
-        self._connection.add_callback_threadsafe(
-            self._channel.close
-        )
+        self._connection.add_callback_threadsafe(self._channel.close)
 
-        self._connection.add_callback_threadsafe(
-            self._connection.close
-        )
+        self._connection.add_callback_threadsafe(self._connection.close)
 
         self._log.debug("Stopping consumer logger...")
         self._stop_logger()
