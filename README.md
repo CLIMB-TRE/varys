@@ -45,7 +45,7 @@ An example of the configuration file format [is available here](example_config.j
 First the varys object must be instantiated, like so:
 
 ```python
-import varys
+from varys import Varys
 
 varys_client = Varys(
     profile="test_user",
