@@ -34,7 +34,7 @@ class Varys:
     -------
     send(message, exchange, queue_suffix=False, exchange_type="fanout")
         Either send a message to an existing exchange, or create a new exchange connection and send the message to it. queue_suffix must be provided when sending a message to a queue for the first time to instantiate a new connection.
-    receive(exchange, queue_suffix=False, block=True, timeout=None, exchange_type="fanout")
+    receive(exchange, queue_suffix=False, block=True, timeout=None, exchange_type="fanout", prefetch_count=5)
         Either receive a message from an existing exchange, or create a new exchange connection and receive a message from it. queue_suffix must be provided when receiving a message from a queue for the first time to instantiate a new connection. block determines whether the receive method should block until a message is received or not.
     receive_batch(exchange, queue_suffix=False)
         Either receive a batch of messages from an existing exchange, or create a new exchange connection and receive a batch of messages from it. queue_suffix must be provided when receiving a message from a queue for the first time to instantiate a new connection.
