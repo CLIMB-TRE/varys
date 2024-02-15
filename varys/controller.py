@@ -71,7 +71,14 @@ class Varys:
         self._in_channels = {}
         self._out_channels = {}
 
-    def send(self, message, exchange, queue_suffix=False, exchange_type="fanout", max_attempts=1):
+    def send(
+        self,
+        message,
+        exchange,
+        queue_suffix=False,
+        exchange_type="fanout",
+        max_attempts=1,
+    ):
         """
         Either send a message to an existing exchange, or create a new exchange connection and send the message to it.
         """
@@ -97,7 +104,14 @@ class Varys:
 
         self._out_channels[exchange].publish_message(message, max_attempts=max_attempts)
 
-    def receive(self, exchange, queue_suffix=False, timeout=None, exchange_type="fanout"):
+    def receive(
+        self,
+        exchange,
+        queue_suffix=False,
+        timeout=None,
+        exchange_type="fanout",
+        prefetch_count=5,
+    ):
         """
         Either receive a message from an existing exchange, or create a new exchange connection and receive a message from it.
         """
@@ -117,6 +131,7 @@ class Varys:
                 log_level=self._log_level,
                 queue_suffix=queue_suffix,
                 exchange_type=exchange_type,
+                prefetch_count=prefetch_count,
             )
             self._in_channels[exchange].start()
             time.sleep(0.1)
@@ -134,12 +149,16 @@ class Varys:
         except queue.Empty:
             return None
 
-    def receive_batch(self, exchange, queue_suffix=False, timeout=0, exchange_type="fanout"):
+    def receive_batch(
+        self, exchange, queue_suffix=False, timeout=0, exchange_type="fanout"
+    ):
         """
         Either receive all messages available from an existing exchange, or create a new exchange connection and receive all messages available from it.
         """
         if timeout is None:
-            raise ValueError("Timeout cannot be `None` or `receive_batch` would block forever.")
+            raise ValueError(
+                "Timeout cannot be `None` or `receive_batch` would block forever."
+            )
 
         messages = []
         while True:

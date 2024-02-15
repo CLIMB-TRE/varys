@@ -10,7 +10,12 @@ TODO:
 ---
 ### Installation
 
-Conda installation will be simplest for most users, and can be achieved with the following command:
+Pip or Conda installation will be simplest for most users, and can be achieved with the following commands:
+
+```
+pip install varys-client
+```
+or
 ```
 conda install -c conda-forge varys
 ```
@@ -42,13 +47,16 @@ First the varys object must be instantiated, like so:
 ```python
 import varys
 
-varys_client = varys(profile="test_user",
+varys_client = Varys(
+    profile="test_user",
     logfile="/var/log/varys_test.log",
     log_level="DEBUG"
 )
 ```
 
 Profile will control which set of credentials the client will read from the config file.
+
+By default Varys will automatically acknowledge received messages instantly however if this is not the desired behaviour then the argument `auto_acknowledge` can be set to `False`, it is important that messages are later acknowledged if this setting is turned off or you risk the RabbitMQ server deciding that you have timed out and closing the connection, see more in the "Message Acknowledgement" section below.
 
 Once the base object has been instantiated you are ready to send or receive messages from the RabbitMQ server:
 
@@ -72,7 +80,7 @@ import json
 
 message = varys_client.receive(exchange="test_exchange",
     queue_suffix="test_suffix",
-    block=True
+    block=True,
 )
 
 deserialised_message = json.loads(message.body)
@@ -90,6 +98,36 @@ properties -> A `pika.BasicProperties` object, containing header information abo
 
 body -> The message body in serialised JSON format, generally a user will wish to convert this to a python object equivalent for ease of use with `json.loads()`
 
+### Message acknowledgement
+
+Where `auto_acknowledge` is set to `False` when instantiating varys, messages must be acknowledged after being received manually like so:
+
+```python
+
+message = varys_client.receive(exchange="test_exchange",
+    queue_suffix="test_suffix",
+    block=True
+)
+
+varys_client.acknowledge_message(message)
+```
+
+If you wish to instead reject the message meaning that it will be pushed back onto the first position of the queue, you can `nack` a message:
+
+```python
+
+message = varys_client.receive(exchange="test_exchange",
+    queue_suffix="test_suffix",
+    block=True
+)
+
+varys_client.nack_message(message)
+```
+
+### Prefetch count
+
+If `auto_acknowledge` is not set, another useful argument is the `prefetch_count` this allows the user to change the number of messages which will be made available to the user at any given time; when a message is acknowledged another message will be made available to maintain this number so long as there are messages available in the rabbitMQ queue. This setting is particularly useful where messages may be acted on in parallel; for example: if 5 messages can be proccessed at a time then the appropriate `prefetch_count` would be `5`, if 10 messages may be processed in parallel then the appropriate `prefetch_count` would be `10`.
+
 #### Receiving multiple messages at a time
 ```python
 import json
@@ -106,3 +144,4 @@ for message in messages:
 ```
 
 This will never block execution and will always return a python list object containing all available messages as `varys_message` objects which should then be iterated through and treated as above. In the case of there being no messages available, this list will be empty and will evaluate to `False`.
+
