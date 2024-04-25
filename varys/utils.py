@@ -11,9 +11,9 @@ class configurator:
         try:
             with open(config_path, "rt") as config_fh:
                 config_obj = json.load(config_fh)
-        except:
+        except Exception as e:
             print(
-                "Configuration JSON does not appear to be valid or does not exist",
+                f"Varys Configuration JSON parsing failed with exception:\n{e}",
                 file=sys.stderr,
             )
             sys.exit(11)
