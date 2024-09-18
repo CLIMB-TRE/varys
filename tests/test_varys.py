@@ -87,7 +87,7 @@ class TestVarys(unittest.TestCase):
 
     def receive_no_message(self):
         self.assertIsNone(
-            self.v.receive("test_varys", queue_suffix="q", timeout=0)
+            self.v.receive("test_varys", queue_suffix="q", timeout=1)
         )
 
     def send_no_suffix(self):
