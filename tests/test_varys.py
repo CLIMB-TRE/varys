@@ -37,10 +37,10 @@ class TestVarys(unittest.TestCase):
         channel.queue_delete(queue="test_varys.q")
 
         connection.close()
+        time.sleep(0.5)
 
         # check that all file handles were dropped
         logger = logging.getLogger("test_varys")
-        time.sleep(0.1)
         self.assertEqual(len(logger.handlers), 0)
 
     def send_and_receive(self):
