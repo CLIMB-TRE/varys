@@ -61,6 +61,13 @@ class configurator:
                             file=sys.stderr,
                         )
                         sys.exit(11)
+                    
+                    if not os.path.exists(self.ca_certificate) or not os.path.exists(self.client_certificate) or not os.path.exists(self.client_key):
+                        print(
+                            "Varys configuration JSON does not appear to contain the necessary files for TLS configuration",
+                            file=sys.stderr,
+                        )
+                        sys.exit(11)
 
                         
 
