@@ -55,6 +55,9 @@ class Process(Thread):
             context.verify_mode = ssl.CERT_REQUIRED
             context.check_hostname = True
 
+            context.load_cert_chain(configuration.client_certificate,
+                                    configuration.client_key)
+
             ssl_options = pika.SSLOptions(context, configuration.ampq_url)
         else:
             ssl_options = None

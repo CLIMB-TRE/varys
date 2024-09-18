@@ -112,6 +112,8 @@ class TestVarysTLS(TestVarys):
                     "port": 5671,
                     "use_tls": True,
                     "ca_certificate": ".rabbitmq/ca_certificate.pem",
+                    "client_certificate": ".rabbitmq/client_certificate.pem",
+                    "client_key": ".rabbitmq/client_key.pem",
                 }
             },
         }
