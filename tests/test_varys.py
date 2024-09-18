@@ -40,6 +40,7 @@ class TestVarys(unittest.TestCase):
 
         # check that all file handles were dropped
         logger = logging.getLogger("test_varys")
+        time.sleep(0.1)
         self.assertEqual(len(logger.handlers), 0)
 
     def send_and_receive(self):
