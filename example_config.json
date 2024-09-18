@@ -1,18 +1,20 @@
 {
-    "version": "0.1",
-    "profiles": {
-        "test": {
-            "username": "test_user",
-            "password": "test_pass",
-            "amqp_url": "192.168.0.1",
-            "use_tls": false,
-            "ca_certificate": "/etc/pki/tls/certs/ca-bundle.crt"
-        },
-        "test_2": {
-            "username": "test_user_2",
-            "password": "test_pass_2",
-            "amqp_url": "192.168.0.1",
-            "use_tls": true
-        }
+  "version": "0.1",
+  "profiles": {
+    "test": {
+      "username": "test_user",
+      "password": "test_pass",
+      "amqp_url": "192.168.0.1",
+      "use_tls": true,
+      "ca_certificate": "/etc/pki/tls/certs/ca-bundle.crt",
+      "client_certificate": "/etc/pki/tls/certs/client.crt",
+      "client_key": "/etc/pki/tls/private/client.key"
+    },
+    "test_2": {
+      "username": "test_user_2",
+      "password": "test_pass_2",
+      "amqp_url": "192.168.0.1",
+      "use_tls": false
     }
+  }
 }

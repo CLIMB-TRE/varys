@@ -36,6 +36,12 @@ pip install .
 
 Varys uses a JSON format configuration file to provide credentials to connect to RabbitMQ, the path to this configuration file should either be provided with the `VARYS_CFG` environmental variable or using `config_path` argument when instantiating varys, this will override an environmental variable.
 
+If you wish to use TLS (highly recommended) you should provide a ca certificates file, a client certificate, and a client key to the client, this can be achieved in one of two ways, via the config file or via environmental variables (the config file will always override environmental variables), the environmental variables are as follows:
+* `VARYS_CA_CERTIFICATE` -> the ca certificate path
+* `VARYS_CLIENT_CERTIFICATE` -> the client certificate
+* `VARYS_CLIENT_KEY` -> the client key
+These must match the certificates and keys which belong to the server, if you are using this within the context of CLIMB-TRE the certificates / keys will already be present within a jupyter notebook with the appropriate environmental variables pointing to them.
+
 An example of the configuration file format [is available here](example_config.json).
 
 ---
