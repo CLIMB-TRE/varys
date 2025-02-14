@@ -102,7 +102,7 @@ class Varys:
                 reconnect_wait=reconnect_wait,
             )
             self._out_channels[exchange].start()
-            time.sleep(0.1)
+            time.sleep(0.3)
 
         self._out_channels[exchange].publish_message(message, max_attempts=max_attempts)
 
