@@ -49,7 +49,7 @@ jobs:
           # so run under a short timeout
           timeout 60s pytest -v --cov-report=term-missing --cov=varys
       - name: "Upload Logfile"
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: varys-logfile-${{ matrix.python-version }}
           path: tests/test.log
