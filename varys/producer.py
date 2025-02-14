@@ -67,8 +67,10 @@ class Producer(Process):
                     f"Exception while trying to publish message on attempt {attempt}!"
                 )
 
-                if attempt < max_attempts and self._reconnect_wait >= 0:
-                    time.sleep(self._reconnect_wait)
+                if attempt < max_attempts:
+                    if self._reconnect_wait > 0:
+                        time.sleep(self._reconnect_wait)
+
                     continue
                 else:
                     raise
