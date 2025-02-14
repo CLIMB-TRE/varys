@@ -138,7 +138,7 @@ class Varys:
                 reconnect_wait=reconnect_wait,
             )
             self._in_channels[exchange].start()
-            time.sleep(0.1)
+            time.sleep(0.3)
 
         try:
             message = self._in_channels[exchange]._message_queue.get(

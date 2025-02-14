@@ -127,7 +127,7 @@ class TestVarysTLS(TestVarys):
     def test_send_and_receive(self):
         self.send_and_receive()
 
-    def zz_test_manual_ack(self):
+    def test_manual_ack(self):
         self.manual_ack()
 
     def test_nack(self):
