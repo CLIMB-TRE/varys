@@ -98,7 +98,7 @@ class Producer(Process):
                 # not sure if this should be while not self._stopping
                 while True:
                     self._connection.process_data_events(time_limit=3)
-            except:
+            except Exception:
                 self._log.exception("Producer caught exception:")
 
             if self._stopping or self._reconnect_wait < 0:

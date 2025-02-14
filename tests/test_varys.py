@@ -123,7 +123,6 @@ class TestVarysTLS(TestVarys):
             json.dump(config, f, ensure_ascii=False)
 
         self.v = Varys("test", LOG_FILENAME, config_path=TMP_FILENAME)
-        time.sleep(0.5)
 
     def test_send_and_receive(self):
         self.send_and_receive()
