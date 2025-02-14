@@ -97,7 +97,7 @@ class Producer(Process):
                 # time_limit=None leads to the connection being dropped for inactivity
                 # not sure if this should be while not self._stopping
                 while True:
-                    self._connection.process_data_events(time_limit=3)
+                    self._connection.process_data_events(time_limit=1)
             except Exception:
                 self._log.exception("Producer caught exception:")
 

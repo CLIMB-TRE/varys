@@ -61,7 +61,11 @@ class TestVarys(unittest.TestCase):
 
         message = self.v.receive("test_varys", queue_suffix="q")
 
+        time.sleep(0.1)
+
         self.v.acknowledge_message(message)
+
+        time.sleep(0.1)
 
     def nack(self):
         self.v.auto_ack = False
