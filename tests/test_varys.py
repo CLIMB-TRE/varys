@@ -59,6 +59,8 @@ class TestVarys(unittest.TestCase):
 
         message = self.v.receive("test_varys", queue_suffix="q")
 
+        time.sleep(0.5)
+
         self.v.acknowledge_message(message)
 
     def nack(self):
@@ -86,9 +88,7 @@ class TestVarys(unittest.TestCase):
         self.assertListEqual([TEXT, TEXT], parsed_messages)
 
     def receive_no_message(self):
-        self.assertIsNone(
-            self.v.receive("test_varys", queue_suffix="q", timeout=1)
-        )
+        self.assertIsNone(self.v.receive("test_varys", queue_suffix="q", timeout=1))
 
     def send_no_suffix(self):
         self.assertRaises(Exception, self.v.send, TEXT, "test_varys")
@@ -243,5 +243,6 @@ class TestVarysConfig(unittest.TestCase):
 
         self.assertEqual(cm.exception.code, 11)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
