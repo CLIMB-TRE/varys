@@ -34,10 +34,11 @@ class Producer(Process):
         self._message_number = 0
 
         self._message_properties = pika.BasicProperties(
-            content_type="json", delivery_mode=pika.DeliveryMode.Persistent,
+            content_type="json",
+            delivery_mode=pika.DeliveryMode.Persistent,
         )
 
-    def publish_message(self, message, max_attempts=1):
+    def publish_message(self, message, max_attempts=3):
         try:
             message_str = json.dumps(message, ensure_ascii=False)
         except TypeError:
@@ -47,7 +48,9 @@ class Producer(Process):
         while attempt < max_attempts:
             try:
                 attempt += 1
-                self._log.info(f"Sending message (attempt {attempt}): {json.dumps(message)}")
+                self._log.info(
+                    f"Sending message (attempt {attempt}): {json.dumps(message)}"
+                )
                 self._connection.add_callback_threadsafe(
                     functools.partial(
                         self._channel.basic_publish,
@@ -58,11 +61,16 @@ class Producer(Process):
                         mandatory=True,
                     )
                 )
-            except pika.exceptions.ConnectionWrongStateError:
-                self._log.exception(f"Exception while trying to publish message on attempt {attempt}!")
+            # except pika.exceptions.ConnectionWrongStateError:
+            except Exception:
+                self._log.exception(
+                    f"Exception while trying to publish message on attempt {attempt}!:"
+                )
 
-                if attempt < max_attempts and self._reconnect_wait >= 0:
-                    time.sleep(self._reconnect_wait)
+                if attempt < max_attempts:
+                    if self._reconnect_wait > 0:
+                        time.sleep(self._reconnect_wait)
+
                     continue
                 else:
                     raise
@@ -83,13 +91,18 @@ class Producer(Process):
                     durable=True,
                 )
                 self._channel.queue_declare(queue=self._queue, durable=True)
-                self._channel.queue_bind(queue=self._queue, exchange=self._exchange, routing_key=self._routing_key)
+                self._channel.queue_bind(
+                    queue=self._queue,
+                    exchange=self._exchange,
+                    routing_key=self._routing_key,
+                )
                 self._channel.confirm_delivery()
                 # time_limit=None leads to the connection being dropped for inactivity
                 # not sure if this should be while not self._stopping
-                while True:
+                # while true:
+                while not self._stopping:
                     self._connection.process_data_events(time_limit=1)
-            except:
+            except Exception:
                 self._log.exception("Producer caught exception:")
 
             if self._stopping or self._reconnect_wait < 0:
@@ -104,15 +117,11 @@ class Producer(Process):
         self._stopping = True
 
         self._connection.add_callback_threadsafe(
-            functools.partial(self._connection.process_data_events, time_limit=1)
+            functools.partial(self._connection.process_data_events, time_limit=3)
         )
 
-        self._connection.add_callback_threadsafe(
-            self._channel.close
-        )
-        self._connection.add_callback_threadsafe(
-            self._connection.close
-        )
+        self._connection.add_callback_threadsafe(self._channel.close)
+        self._connection.add_callback_threadsafe(self._connection.close)
 
         self._log.debug("Stopping producer logger...")
         self._stop_logger()

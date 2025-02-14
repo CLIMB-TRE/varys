@@ -37,6 +37,7 @@ class TestVarys(unittest.TestCase):
         channel.queue_delete(queue="test_varys.q")
 
         connection.close()
+        time.sleep(0.5)
 
         # check that all file handles were dropped
         logger = logging.getLogger("test_varys")
@@ -53,6 +54,8 @@ class TestVarys(unittest.TestCase):
     def manual_ack(self):
 
         self.v.auto_ack = False
+
+        time.sleep(0.5)
 
         self.v.send(TEXT, "test_varys", queue_suffix="q")
 
@@ -85,9 +88,7 @@ class TestVarys(unittest.TestCase):
         self.assertListEqual([TEXT, TEXT], parsed_messages)
 
     def receive_no_message(self):
-        self.assertIsNone(
-            self.v.receive("test_varys", queue_suffix="q", timeout=0)
-        )
+        self.assertIsNone(self.v.receive("test_varys", queue_suffix="q", timeout=1))
 
     def send_no_suffix(self):
         self.assertRaises(Exception, self.v.send, TEXT, "test_varys")
@@ -112,6 +113,8 @@ class TestVarysTLS(TestVarys):
                     "port": 5671,
                     "use_tls": True,
                     "ca_certificate": ".rabbitmq/ca_certificate.pem",
+                    "client_certificate": ".rabbitmq/client_certificate.pem",
+                    "client_key": ".rabbitmq/client_key.pem",
                 }
             },
         }
@@ -240,5 +243,6 @@ class TestVarysConfig(unittest.TestCase):
 
         self.assertEqual(cm.exception.code, 11)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

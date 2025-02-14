@@ -78,6 +78,7 @@ class Varys:
         queue_suffix=False,
         exchange_type="fanout",
         max_attempts=1,
+        reconnect_wait=10,
     ):
         """
         Either send a message to an existing exchange, or create a new exchange connection and send the message to it.
@@ -98,9 +99,10 @@ class Varys:
                 log_level=self._log_level,
                 queue_suffix=queue_suffix,
                 exchange_type=exchange_type,
+                reconnect_wait=reconnect_wait,
             )
             self._out_channels[exchange].start()
-            time.sleep(0.1)
+            time.sleep(0.3)
 
         self._out_channels[exchange].publish_message(message, max_attempts=max_attempts)
 
@@ -111,6 +113,7 @@ class Varys:
         timeout=None,
         exchange_type="fanout",
         prefetch_count=5,
+        reconnect_wait=10,
     ):
         """
         Either receive a message from an existing exchange, or create a new exchange connection and receive a message from it.
@@ -132,9 +135,10 @@ class Varys:
                 queue_suffix=queue_suffix,
                 exchange_type=exchange_type,
                 prefetch_count=prefetch_count,
+                reconnect_wait=reconnect_wait,
             )
             self._in_channels[exchange].start()
-            time.sleep(0.1)
+            time.sleep(0.3)
 
         try:
             message = self._in_channels[exchange]._message_queue.get(

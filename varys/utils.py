@@ -1,6 +1,7 @@
 from collections import namedtuple
 import sys
 import json
+import os
 
 
 varys_message = namedtuple("varys_message", "basic_deliver properties body")
@@ -34,7 +35,41 @@ class configurator:
                 self.port = int(profile_dict["port"])
 
                 self.use_tls = profile_dict["use_tls"]
-                self.ca_certificate = profile_dict.get("ca_certificate", None)
+
+                if self.use_tls:
+                    if os.environ.get("VARYS_CA_CERTIFICATE"):
+                        self.ca_certificate = os.environ.get("VARYS_CA_CERTIFICATE")
+
+                    if profile_dict.get("ca_certificate"):
+                        self.ca_certificate = profile_dict.get("ca_certificate", None)
+
+                    if os.environ.get("VARYS_CLIENT_CERTIFICATE"):
+                        self.client_certificate = os.environ.get("VARYS_CLIENT_CERTIFICATE")
+
+                    if profile_dict.get("client_certificate"):
+                        self.client_certificate = profile_dict["client_certificate"]
+
+                    if os.environ.get("VARYS_CLIENT_KEY"):
+                        self.client_key = os.environ.get("VARYS_CLIENT_KEY")
+
+                    if profile_dict.get("client_key"):
+                        self.client_key = profile_dict["client_key"]
+                
+                    if not self.ca_certificate or not self.client_certificate or not self.client_key:
+                        print(
+                            "Varys configuration JSON does not appear to contain the necessary fields for TLS configuration",
+                            file=sys.stderr,
+                        )
+                        sys.exit(11)
+                    
+                    if not os.path.exists(self.ca_certificate) or not os.path.exists(self.client_certificate) or not os.path.exists(self.client_key):
+                        print(
+                            "Varys configuration JSON does not appear to contain the necessary files for TLS configuration",
+                            file=sys.stderr,
+                        )
+                        sys.exit(11)
+
+                        
 
             except KeyError:
                 print(
