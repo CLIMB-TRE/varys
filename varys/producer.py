@@ -96,7 +96,8 @@ class Producer(Process):
                 self._channel.confirm_delivery()
                 # time_limit=None leads to the connection being dropped for inactivity
                 # not sure if this should be while not self._stopping
-                while True:
+                # while true:
+                while not self._stopping:
                     self._connection.process_data_events(time_limit=1)
             except Exception:
                 self._log.exception("Producer caught exception:")
