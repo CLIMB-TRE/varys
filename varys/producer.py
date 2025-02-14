@@ -62,9 +62,9 @@ class Producer(Process):
                     )
                 )
             # except pika.exceptions.ConnectionWrongStateError:
-            except Exception as e:
-                self._log.error(
-                    f"Exception while trying to publish message on attempt {attempt}!:\n{str(e)}"
+            except Exception:
+                self._log.exception(
+                    f"Exception while trying to publish message on attempt {attempt}!:"
                 )
 
                 if attempt < max_attempts:
