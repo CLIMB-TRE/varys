@@ -57,9 +57,9 @@ class TestVarys(unittest.TestCase):
 
         self.v.send(TEXT, "test_varys", queue_suffix="q")
 
-        message = self.v.receive("test_varys", queue_suffix="q")
+        time.sleep(0.1)
 
-        time.sleep(0.5)
+        message = self.v.receive("test_varys", queue_suffix="q")
 
         self.v.acknowledge_message(message)
 
