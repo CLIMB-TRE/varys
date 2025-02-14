@@ -97,7 +97,7 @@ class Producer(Process):
                 # time_limit=None leads to the connection being dropped for inactivity
                 # not sure if this should be while not self._stopping
                 while True:
-                    self._connection.process_data_events(time_limit=1)
+                    self._connection.process_data_events(time_limit=3)
             except:
                 self._log.exception("Producer caught exception:")
 
@@ -113,7 +113,7 @@ class Producer(Process):
         self._stopping = True
 
         self._connection.add_callback_threadsafe(
-            functools.partial(self._connection.process_data_events, time_limit=1)
+            functools.partial(self._connection.process_data_events, time_limit=3)
         )
 
         self._connection.add_callback_threadsafe(self._channel.close)
