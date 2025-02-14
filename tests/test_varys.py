@@ -55,7 +55,7 @@ class TestVarys(unittest.TestCase):
 
         self.v.auto_ack = False
 
-        self.v.send(TEXT, "test_varys", queue_suffix="q", reconnect_wait=0.5)
+        self.v.send(TEXT, "test_varys", queue_suffix="q")
 
         time.sleep(0.1)
 
