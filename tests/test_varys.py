@@ -100,6 +100,57 @@ class TestVarys(unittest.TestCase):
         self.assertRaises(Exception, self.v.receive_batch, "test_varys")
 
 
+class TestVarysTLSEnvVars(TestVarys):
+
+    def setUp(self):
+
+        os.environ["VARYS_CA_CERTIFICATE"] = ".rabbitmq/ca_certificate.pem"
+        os.environ["VARYS_CLIENT_CERTIFICATE"] = ".rabbitmq/client_certificate.pem"
+        os.environ["VARYS_CLIENT_KEY"] = ".rabbitmq/client_key.pem"
+
+        config = {
+            "version": "0.1",
+            "profiles": {
+                "test": {
+                    "username": "guest",
+                    "password": "guest",
+                    "amqp_url": "localhost",
+                    "port": 5671,
+                    "use_tls": True,
+                }
+            },
+        }
+
+        with open(TMP_FILENAME, "w") as f:
+            json.dump(config, f, ensure_ascii=False)
+
+        self.v = Varys("test", LOG_FILENAME, config_path=TMP_FILENAME)
+
+    def test_send_and_receive(self):
+        self.send_and_receive()
+
+    def test_manual_ack(self):
+        self.manual_ack()
+
+    def test_nack(self):
+        self.nack()
+
+    def test_send_and_receive_batch(self):
+        self.send_and_receive_batch()
+
+    def test_receive_no_message(self):
+        self.receive_no_message()
+
+    def test_send_no_suffix(self):
+        self.send_no_suffix()
+
+    def test_receive_no_suffix(self):
+        self.receive_no_suffix()
+
+    def test_receive_batch_no_suffix(self):
+        self.receive_batch_no_suffix()
+
+
 class TestVarysTLS(TestVarys):
 
     def setUp(self):
