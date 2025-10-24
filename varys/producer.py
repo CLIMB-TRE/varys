@@ -105,8 +105,12 @@ class Producer(Process):
             except Exception:
                 self._log.exception("Producer caught exception:")
 
-            if self._stopping or self._reconnect_wait < 0:
+            if self._stopping:
                 self._connection.process_data_events(time_limit=0)
+                break
+            elif self._reconnect_wait < 0:
+                # connection has been broken but we don't want to reconnect
+                # so there's no connection with data events to process
                 break
             else:
                 time.sleep(self._reconnect_wait)
