@@ -106,6 +106,7 @@ class Producer(Process):
                 self._log.exception("Producer caught exception:")
 
             if self._stopping or self._reconnect_wait < 0:
+                self._connection.process_data_events(time_limit=0)
                 break
             else:
                 time.sleep(self._reconnect_wait)
