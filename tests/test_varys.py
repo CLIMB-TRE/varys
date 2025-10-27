@@ -99,6 +99,30 @@ class TestVarys(unittest.TestCase):
     def receive_batch_no_suffix(self):
         self.assertRaises(Exception, self.v.receive_batch, "test_varys")
 
+    def quick_turnaround(self):
+        """Regression test for GitHub issue #28:
+
+        https://github.com/CLIMB-TRE/varys/issues/28
+
+        Quickly sends a lot of messages, closes the client, then
+        checks that all the messages can be received.
+        """
+        sent_messages = [str(i) for i in range(1000)]
+
+        for message in sent_messages:
+            self.v.send(message, "test_varys", queue_suffix="q")
+
+        self.v.close()
+
+        # we re-use the setUp method to get the same configuration
+        self.setUp()
+        # timeout seems to need to be at least 0.01s
+        received_messages = [
+            message.body.decode()[1:-1] for message in self.v.receive_batch('test_varys', queue_suffix='q', timeout=0.1)
+        ]
+
+        self.assertEqual(received_messages, sent_messages)
+
 
 class TestVarysTLS(TestVarys):
 
@@ -148,6 +172,9 @@ class TestVarysTLS(TestVarys):
     def test_receive_batch_no_suffix(self):
         self.receive_batch_no_suffix()
 
+    def test_quick_turnaround(self):
+        self.quick_turnaround()
+
 
 class TestVarysNoTLS(TestVarys):
 
@@ -194,6 +221,9 @@ class TestVarysNoTLS(TestVarys):
 
     def test_receive_batch_no_suffix(self):
         self.receive_batch_no_suffix()
+
+    def test_quick_turnaround(self):
+        self.quick_turnaround()
 
 
 class TestVarysConfig(unittest.TestCase):
