@@ -5,6 +5,7 @@
       "username": "test_user",
       "password": "test_pass",
       "amqp_url": "192.168.0.1",
+      "port": 5671,
       "use_tls": true,
       "ca_certificate": "/etc/pki/tls/certs/ca-bundle.crt",
       "client_certificate": "/etc/pki/tls/certs/client.crt",
@@ -14,6 +15,7 @@
       "username": "test_user_2",
       "password": "test_pass_2",
       "amqp_url": "192.168.0.1",
+      "port": 5672,
       "use_tls": false
     }
   }
