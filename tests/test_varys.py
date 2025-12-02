@@ -304,8 +304,6 @@ class TestVarysPermissions(unittest.TestCase):
         logger = logging.getLogger("test_varys")
         self.assertEqual(len(logger.handlers), 1)
 
-    def test_send_nonextant_
-
 
 class TestVarysConfig(unittest.TestCase):
     def tearDown(self):
