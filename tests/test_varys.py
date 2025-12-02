@@ -43,7 +43,6 @@ class TestVarys(unittest.TestCase):
         logger = logging.getLogger("test_varys")
         self.assertEqual(len(logger.handlers), 0)
 
-    def send_and_receive(self):
         self.v.send(TEXT, "test_varys", queue_suffix="q")
         message = self.v.receive("test_varys", queue_suffix="q")
         self.assertEqual(TEXT, json.loads(message.body))
@@ -118,7 +117,10 @@ class TestVarys(unittest.TestCase):
         self.setUp()
         # timeout seems to need to be at least 0.01s
         received_messages = [
-            message.body.decode()[1:-1] for message in self.v.receive_batch('test_varys', queue_suffix='q', timeout=0.1)
+            message.body.decode()[1:-1]
+            for message in self.v.receive_batch(
+                "test_varys", queue_suffix="q", timeout=0.1
+            )
         ]
 
         self.assertEqual(received_messages, sent_messages)
@@ -149,7 +151,6 @@ class TestVarysTLS(TestVarys):
         self.v = Varys("test", LOG_FILENAME, config_path=TMP_FILENAME)
 
     def test_send_and_receive(self):
-        self.send_and_receive()
 
     def test_manual_ack(self):
         self.manual_ack()
@@ -199,7 +200,6 @@ class TestVarysNoTLS(TestVarys):
         self.v = Varys("test", LOG_FILENAME, config_path=TMP_FILENAME)
 
     def test_send_and_receive(self):
-        self.send_and_receive()
 
     def test_manual_ack(self):
         self.manual_ack()
@@ -224,6 +224,81 @@ class TestVarysNoTLS(TestVarys):
 
     def test_quick_turnaround(self):
         self.quick_turnaround()
+
+
+class TestVarysPermissions(unittest.TestCase):
+
+    def setUp(self):
+        config = {
+            "version": "0.1",
+            "profiles": {
+                "test": {
+                    "username": "guest2",
+                    "password": "guest",
+                    "amqp_url": "localhost",
+                    "port": 5671,
+                    "use_tls": True,
+                    "ca_certificate": ".rabbitmq/ca_certificate.pem",
+                    "client_certificate": ".rabbitmq/client_certificate.pem",
+                    "client_key": ".rabbitmq/client_key.pem",
+                }
+            },
+        }
+
+        with open(TMP_FILENAME, "w") as f:
+            json.dump(config, f, ensure_ascii=False)
+
+        self.v = Varys("test", LOG_FILENAME, config_path=TMP_FILENAME)
+
+    def tearDown(self):
+        # this seems to prevent some hanging
+        # or errors related to closing connections that haven't opened yet
+        # I presume because some operations are so fast
+        # that we try to close the connections before they've opened
+        # 0.01s seems to be sufficient; 0.1s is just a bit conservative
+        time.sleep(0.1)
+
+        self.v.close()
+        os.remove(TMP_FILENAME)
+        time.sleep(0.1)
+
+        credentials = pika.PlainCredentials("guest", "guest")
+
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters("localhost", credentials=credentials)
+        )
+        channel = connection.channel()
+
+        channel.queue_purge(queue="")
+
+        connection.close()
+        time.sleep(0.5)
+
+        # check that all file handles were dropped
+        logger = logging.getLogger("test_varys")
+        self.assertEqual(len(logger.handlers), 0)
+
+    def test_send_receive_extant_queue(self):
+        self.v.send(TEXT, "test-exchange", queue_suffix="test_queue")
+        message = self.v.receive("test-exchange", queue_suffix="test_queue")
+        self.assertEqual(TEXT, json.loads(message.body))
+
+        logger = logging.getLogger("test_varys")
+        self.assertEqual(len(logger.handlers), 1)
+
+    def test_send_nonextant_queue(self):
+        self.v.send(TEXT, "test-exchange", queue_suffix="test_queue_2")
+        message = self.v.receive("test-exchange", queue_suffix="test_queue_2")
+        self.assertEqual(TEXT, json.loads(message.body))
+
+        logger = logging.getLogger("test_varys")
+        self.assertEqual(len(logger.handlers), 1)
+
+    def test_send_nonextant_exchange(self):
+        with self.assertRaises(pika.exceptions.ChannelClosedByBroker) as cm:
+            self.v.send(TEXT, "nonexistent-exchange", queue_suffix="test_queue")
+
+        self.assertEqual(cm.exception.reply_code, 404)
 
 
 class TestVarysConfig(unittest.TestCase):
