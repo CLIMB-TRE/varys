@@ -1,0 +1,52 @@
+{
+    "users": [
+        {
+            "hashing_algorithm": "rabbit_password_hashing_sha256",
+            "name": "guest2",
+            "password_hash": "MElrQXVkgZpZ9XP+9xYCFxuAgJFCEs+0gO5GESJfhLhy2yCG"
+        },
+        {
+            "name": "guest",
+            "password_hash": "9/1i+jKFRpbTRV1PtRnzFFYibT3cEpP92JeZ8YKGtflf4e/u",
+            "tags": [
+                "administrator"
+            ]
+        }
+    ],
+    "permissions": [
+        {
+            "user": "guest2",
+            "vhost": "/",
+            "configure": "test_exchange\\.\\w*",
+            "read": "test_exchange",
+            "write": "test_exchange\\.\\w*"
+        },
+        {
+            "user": "guest",
+            "vhost": "/",
+            "configure": ".*",
+            "read": ".*",
+            "write": ".*"
+        }
+    ],
+    "exchanges": [
+        {
+            "arguments": {},
+            "auto_delete": false,
+            "durable": true,
+            "name": "test_exchange",
+            "type": "fanout",
+            "vhost": "/"
+        }
+    ],
+    "bindings": [
+        {
+            "arguments": {},
+            "destination": "test-exchange.test_queue",
+            "destination_type": "queue",
+            "routing_key": "arbitrary_string",
+            "source": "test_exchange",
+            "vhost": "/"
+        }
+    ]
+}
