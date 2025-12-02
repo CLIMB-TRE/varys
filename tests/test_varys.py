@@ -50,6 +50,14 @@ class TestVarys(unittest.TestCase):
         logger = logging.getLogger("test_varys")
         self.assertEqual(len(logger.handlers), 1)
 
+    def send_and_receive(self):
+        self.v.send(TEXT, "test_varys", queue_suffix="q")
+        message = self.v.receive("test_varys", queue_suffix="q")
+        self.assertEqual(TEXT, json.loads(message.body))
+
+        logger = logging.getLogger("test_varys")
+        self.assertEqual(len(logger.handlers), 1)
+
     def manual_ack(self):
 
         self.v.auto_ack = False
@@ -151,6 +159,7 @@ class TestVarysTLS(TestVarys):
         self.v = Varys("test", LOG_FILENAME, config_path=TMP_FILENAME)
 
     def test_send_and_receive(self):
+        self.send_and_receive()
 
     def test_manual_ack(self):
         self.manual_ack()
@@ -200,6 +209,7 @@ class TestVarysNoTLS(TestVarys):
         self.v = Varys("test", LOG_FILENAME, config_path=TMP_FILENAME)
 
     def test_send_and_receive(self):
+        self.send_and_receive()
 
     def test_manual_ack(self):
         self.manual_ack()
@@ -294,11 +304,7 @@ class TestVarysPermissions(unittest.TestCase):
         logger = logging.getLogger("test_varys")
         self.assertEqual(len(logger.handlers), 1)
 
-    def test_send_nonextant_exchange(self):
-        with self.assertRaises(pika.exceptions.ChannelClosedByBroker) as cm:
-            self.v.send(TEXT, "nonexistent-exchange", queue_suffix="test_queue")
-
-        self.assertEqual(cm.exception.reply_code, 404)
+    def test_send_nonextant_
 
 
 class TestVarysConfig(unittest.TestCase):
