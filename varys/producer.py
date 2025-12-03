@@ -100,6 +100,7 @@ class Producer(Process):
                     self._log.info(
                         f"Exchange {self._exchange} does not exist, creating it..."
                     )
+                    self._channel = self._connection.channel()
                     self._channel.exchange_declare(
                         exchange=self._exchange,
                         exchange_type=self._exchange_type,
