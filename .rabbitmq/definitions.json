@@ -8,8 +8,8 @@
             "write": ".*"
         },
         {
-            "configure": "test_exchange\\.\\w*",
-            "read": "test_exchange\\.\\w*",
+            "configure": "test_exchange\\..*",
+            "read": "test_exchange.*",
             "user": "guest2",
             "vhost": "/",
             "write": "test_exchange"
