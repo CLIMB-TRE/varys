@@ -293,7 +293,7 @@ class TestVarysPermissions(unittest.TestCase):
         )
         channel = connection.channel()
 
-        channel.queue_purge(queue="")
+        channel.queue_purge(queue="test-exchange.test_queue")
 
         connection.close()
         time.sleep(0.5)
