@@ -1,5 +1,6 @@
 import functools
 import pika
+from pika import exceptions as pika_exceptions
 import time
 import json
 
@@ -85,12 +86,46 @@ class Producer(Process):
             try:
                 self._connection = pika.BlockingConnection(self._parameters)
                 self._channel = self._connection.channel()
-                self._channel.exchange_declare(
-                    exchange=self._exchange,
-                    exchange_type=self._exchange_type,
-                    durable=True,
-                )
-                self._channel.queue_declare(queue=self._queue, durable=True)
+                try:
+                    self._channel.exchange_declare(
+                        exchange=self._exchange,
+                        exchange_type=self._exchange_type,
+                        durable=True,
+                        passive=True,
+                    )
+                except pika_exceptions.ChannelClosed as e:
+                    if e.reply_code != 404:
+                        raise
+
+                    self._log.info(
+                        f"Exchange {self._exchange} does not exist, creating it..."
+                    )
+                    self._channel.exchange_declare(
+                        exchange=self._exchange,
+                        exchange_type=self._exchange_type,
+                        durable=True,
+                    )
+
+                try:
+                    self._channel.queue_declare(
+                        queue=self._queue, durable=True, passive=True
+                    )
+                except pika_exceptions.ChannelClosed as e:
+                    if e.reply_code != 404:
+                        raise
+
+                    self._log.info(
+                        f"Queue {self._queue} does not exist, creating it..."
+                    )
+                    self._channel = self._connection.channel()
+                    self._channel.exchange_declare(
+                        exchange=self._exchange,
+                        exchange_type=self._exchange_type,
+                        durable=True,
+                        passive=True,
+                    )
+                    self._channel.queue_declare(queue=self._queue, durable=True)
+
                 self._channel.queue_bind(
                     queue=self._queue,
                     exchange=self._exchange,
