@@ -309,6 +309,7 @@ class TestVarysPermissions(unittest.TestCase):
 
     def test_not_permitted_declare_fail(self):
         self.v.send(TEXT, "test-exchange-2", queue_suffix="test_queue")
+        print(self._caplog.text)
         self.assertTrue(
             "pika.exceptions.ChannelClosedByBroker: (403, \"ACCESS_REFUSED - configure access to exchange 'test-exchange-2' in vhost '/' refused for user 'guest2'\")"
             in self._caplog.text
