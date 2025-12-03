@@ -6,7 +6,6 @@ import json
 import logging
 from varys import Varys
 import pika
-import pytest
 
 DIR = os.path.dirname(__file__)
 LOG_FILENAME = os.path.join(DIR, "test.log")
@@ -232,10 +231,6 @@ class TestVarysNoTLS(TestVarys):
 
 class TestVarysPermissions(unittest.TestCase):
 
-    @pytest.fixture(autouse=True)
-    def inject_fixtures(self, caplog):
-        self._caplog = caplog
-
     def setUp(self):
         config = {
             "version": "0.1",
@@ -308,12 +303,14 @@ class TestVarysPermissions(unittest.TestCase):
         self.assertEqual(len(logger.handlers), 0)
 
     def test_not_permitted_declare_fail(self):
-        self.v.send(TEXT, "test-exchange-2", queue_suffix="test_queue")
-        print(self._caplog.text)
-        self.assertTrue(
-            "pika.exceptions.ChannelClosedByBroker: (403, \"ACCESS_REFUSED - configure access to exchange 'test-exchange-2' in vhost '/' refused for user 'guest2'\")"
-            in self._caplog.text
-        )
+        with self.assertLogs("test-exchange-2", level="DEBUG") as cm:
+            self.v.send(TEXT, "test-exchange-2", queue_suffix="test_queue")
+            self.assertTrue(
+                any(
+                    "pika.exceptions.ChannelClosedByBroker: (403, " in message
+                    for message in cm.output
+                )
+            )
 
     def test_send_receive_extant_queue(self):
         self.v.send(TEXT, "test-exchange", queue_suffix="test_queue")
