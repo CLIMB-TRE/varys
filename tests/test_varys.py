@@ -298,9 +298,10 @@ class TestVarysPermissions(unittest.TestCase):
         connection.close()
         time.sleep(0.5)
 
-        # check that all file handles were dropped
-        logger = logging.getLogger("test_varys")
-        self.assertEqual(len(logger.handlers), 0)
+        # check that all file handles were dropped for relevant loggers
+        for logger_name in ["test-exchange", "test-exchange-2", "test-exchange-3"]:
+            logger = logging.getLogger(logger_name)
+            self.assertEqual(len(logger.handlers), 0)
 
     def test_not_permitted_declare_fail(self):
         self.v.send(TEXT, "test-exchange-2", queue_suffix="test_queue")
