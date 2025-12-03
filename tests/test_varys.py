@@ -304,6 +304,7 @@ class TestVarysPermissions(unittest.TestCase):
         self.assertEqual(len(logger.handlers), 0)
 
     def test_not_permitted_declare_fail(self):
+        self.v.send(TEXT, "test-exchange-2", queue_suffix="test_queue")
         with self.assertRaises(pika_exceptions.ChannelClosedByBroker) as cm:
             self.v.send(TEXT, "test-exchange-2", queue_suffix="test_queue")
 
