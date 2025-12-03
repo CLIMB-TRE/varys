@@ -303,12 +303,12 @@ class TestVarysPermissions(unittest.TestCase):
         logger = logging.getLogger("test_varys")
         self.assertEqual(len(logger.handlers), 0)
 
-    def test_not_permitted_declare_fail(self):
+    def test_not_permitted_declare_fail(self, caplog):
         self.v.send(TEXT, "test-exchange-2", queue_suffix="test_queue")
-        with self.assertRaises(pika_exceptions.ChannelClosed) as cm:
-            self.v.send(TEXT, "test-exchange-2", queue_suffix="test_queue")
-
-        self.assertEqual(cm.exception.reply_code, 403)
+        self.assertTrue(
+            "pika.exceptions.ChannelClosedByBroker: (403, \"ACCESS_REFUSED - configure access to exchange 'test-exchange-2' in vhost '/' refused for user 'guest2'\")"
+            in caplog.text
+        )
 
     def test_send_receive_extant_queue(self):
         self.v.send(TEXT, "test-exchange", queue_suffix="test_queue")
