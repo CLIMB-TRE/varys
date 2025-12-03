@@ -240,6 +240,7 @@ class TestVarysPermissions(unittest.TestCase):
                     "password": "guest",
                     "amqp_url": "localhost",
                     "port": 5672,
+                    "use_tls": False,
                 },
                 "admin": {
                     "username": "guest",
