@@ -303,14 +303,15 @@ class TestVarysPermissions(unittest.TestCase):
         self.assertEqual(len(logger.handlers), 0)
 
     def test_not_permitted_declare_fail(self):
-        with self.assertLogs("test-exchange-2", level="DEBUG") as cm:
-            self.v.send(TEXT, "test-exchange-2", queue_suffix="test_queue")
-            self.assertTrue(
-                any(
-                    "pika.exceptions.ChannelClosedByBroker: (403, " in message
-                    for message in cm.output
-                )
+        self.v.send(TEXT, "test-exchange-2", queue_suffix="test_queue")
+        time.sleep(0.5)
+        loglines = open(LOG_FILENAME).readlines()
+        self.assertTrue(
+            any(
+                "pika.exceptions.ChannelClosedByBroker: (403, " in message
+                for message in loglines
             )
+        )
 
     def test_send_receive_extant_queue(self):
         self.v.send(TEXT, "test-exchange", queue_suffix="test_queue")
