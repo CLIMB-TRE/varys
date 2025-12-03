@@ -304,7 +304,7 @@ class TestVarysPermissions(unittest.TestCase):
         self.assertEqual(len(logger.handlers), 0)
 
     def test_not_permitted_declare_fail(self):
-        with self.assertRaises(pika_exceptions.ChannelClosed) as cm:
+        with self.assertRaises(pika_exceptions.ChannelClosedByBroker) as cm:
             self.v.send(TEXT, "test-exchange-2", queue_suffix="test_queue")
 
     def test_send_receive_extant_queue(self):
@@ -312,7 +312,7 @@ class TestVarysPermissions(unittest.TestCase):
         message = self.v.receive("test-exchange", queue_suffix="test_queue")
         self.assertEqual(TEXT, json.loads(message.body))
 
-        logger = logging.getLogger("test_varys")
+        logger = logging.getLogger("test-exchange")
         self.assertEqual(len(logger.handlers), 1)
 
     def test_send_nonextant_queue(self):
@@ -320,7 +320,7 @@ class TestVarysPermissions(unittest.TestCase):
         message = self.v.receive("test-exchange", queue_suffix="test_queue_2")
         self.assertEqual(TEXT, json.loads(message.body))
 
-        logger = logging.getLogger("test_varys")
+        logger = logging.getLogger("test-exchange")
         self.assertEqual(len(logger.handlers), 1)
 
     def test_send_nonextant_exchange(self):
@@ -328,7 +328,7 @@ class TestVarysPermissions(unittest.TestCase):
         message = self.v.receive("test-exchange-3", queue_suffix="test_queue")
         self.assertEqual(TEXT, json.loads(message.body))
 
-        logger = logging.getLogger("test_varys")
+        logger = logging.getLogger("test-exchange-3")
         self.assertEqual(len(logger.handlers), 1)
 
 
