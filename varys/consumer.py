@@ -122,6 +122,7 @@ class Consumer(Process):
                 self._channel.start_consuming()
             except Exception as e:
                 self._log.exception(f"Consumer caught exception: {e}")
+                raise
 
             if self._stopping or self._reconnect_wait < 0:
                 break
