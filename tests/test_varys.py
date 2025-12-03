@@ -256,6 +256,15 @@ class TestVarysPermissions(unittest.TestCase):
         admin_varys.send("setup message", "test-exchange", queue_suffix="test_queue")
         admin_varys.close()
 
+        credentials = pika.PlainCredentials("guest", "guest")
+
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters("localhost", credentials=credentials)
+        )
+        channel = connection.channel()
+
+        channel.queue_purge(queue="test-exchange.test_queue")
+
         with open(TMP_FILENAME, "w") as f:
             json.dump(config, f, ensure_ascii=False)
 
