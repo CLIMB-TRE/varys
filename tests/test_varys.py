@@ -239,14 +239,22 @@ class TestVarysPermissions(unittest.TestCase):
                     "username": "guest2",
                     "password": "guest",
                     "amqp_url": "localhost",
-                    "port": 5671,
-                    "use_tls": True,
-                    "ca_certificate": ".rabbitmq/ca_certificate.pem",
-                    "client_certificate": ".rabbitmq/client_certificate.pem",
-                    "client_key": ".rabbitmq/client_key.pem",
-                }
+                    "port": 5672,
+                },
+                "admin": {
+                    "username": "guest",
+                    "password": "guest",
+                    "amqp_url": "localhost",
+                    "port": 5672,
+                    "use_tls": False,
+                },
             },
         }
+
+        # Setup exchange
+        admin_varys = Varys("admin", LOG_FILENAME, config_path=TMP_FILENAME)
+        admin_varys.send("setup message", "test-exchange", queue_suffix="test_queue")
+        admin_varys.close()
 
         with open(TMP_FILENAME, "w") as f:
             json.dump(config, f, ensure_ascii=False)
