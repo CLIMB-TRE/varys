@@ -3,4 +3,5 @@ varys/__pycache__*
 tests/__pycache__*
 tests/test.log
 varys.egg-info/*
+varys_client.egg-info/*
 .pytest_cache*
