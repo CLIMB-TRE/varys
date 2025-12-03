@@ -1,52 +1,61 @@
 {
+    "permissions": [
+        {
+            "configure": ".*",
+            "read": ".*",
+            "user": "guest",
+            "vhost": "/",
+            "write": ".*"
+        },
+        {
+            "configure": "test_exchange\\.\\w*",
+            "read": "test_exchange\\.\\w*",
+            "user": "guest2",
+            "vhost": "/",
+            "write": "test_exchange"
+        }
+    ],
+    "bindings": [],
+    "queues": [],
+    "parameters": [],
+    "policies": [],
+    "rabbitmq_version": "4.2.1",
+    "rabbit_version": "4.2.1",
+    "exchanges": [],
+    "vhosts": [
+        {
+            "limits": [],
+            "metadata": {
+                "description": "Default virtual host",
+                "tags": [],
+                "default_queue_type": "classic"
+            },
+            "name": "/"
+        }
+    ],
     "users": [
         {
             "hashing_algorithm": "rabbit_password_hashing_sha256",
-            "name": "guest2",
-            "password_hash": "MElrQXVkgZpZ9XP+9xYCFxuAgJFCEs+0gO5GESJfhLhy2yCG"
-        },
-        {
+            "limits": {},
             "name": "guest",
-            "password_hash": "9/1i+jKFRpbTRV1PtRnzFFYibT3cEpP92JeZ8YKGtflf4e/u",
+            "password_hash": "LzA8uEF2TYeMtmxczECa40VAIOdZmg08i6R+L4XEeg9b62Br",
             "tags": [
                 "administrator"
             ]
-        }
-    ],
-    "permissions": [
-        {
-            "user": "guest2",
-            "vhost": "/",
-            "configure": "test_exchange\\.\\w*",
-            "read": "test_exchange",
-            "write": "test_exchange\\.\\w*"
         },
         {
-            "user": "guest",
-            "vhost": "/",
-            "configure": ".*",
-            "read": ".*",
-            "write": ".*"
+            "hashing_algorithm": "rabbit_password_hashing_sha256",
+            "limits": {},
+            "name": "guest2",
+            "password_hash": "nV8dlnyFAnteKsCYrrHUPmuNo7rmxLEgOkKXf8WHNW4Nt0GS",
+            "tags": []
         }
     ],
-    "exchanges": [
+    "global_parameters": [
         {
-            "arguments": {},
-            "auto_delete": false,
-            "durable": true,
-            "name": "test_exchange",
-            "type": "fanout",
-            "vhost": "/"
+            "name": "cluster_tags",
+            "value": []
         }
     ],
-    "bindings": [
-        {
-            "arguments": {},
-            "destination": "test-exchange.test_queue",
-            "destination_type": "queue",
-            "routing_key": "arbitrary_string",
-            "source": "test_exchange",
-            "vhost": "/"
-        }
-    ]
+    "topic_permissions": []
 }
