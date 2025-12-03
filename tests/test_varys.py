@@ -305,7 +305,9 @@ class TestVarysPermissions(unittest.TestCase):
     def test_not_permitted_declare_fail(self):
         self.v.send(TEXT, "test-exchange-2", queue_suffix="test_queue")
         time.sleep(0.5)
-        loglines = open(LOG_FILENAME).readlines()
+        with open(LOG_FILENAME, "r") as f:
+            loglines = f.readlines()
+
         self.assertTrue(
             any(
                 "pika.exceptions.ChannelClosedByBroker: (403, " in message
@@ -321,7 +323,7 @@ class TestVarysPermissions(unittest.TestCase):
         logger = logging.getLogger("test-exchange")
         self.assertEqual(len(logger.handlers), 1)
 
-    def test_send_nonextant_queue(self):
+    def test_send_nonexistant_queue(self):
         self.v.send(TEXT, "test-exchange", queue_suffix="test_queue_2")
         message = self.v.receive("test-exchange", queue_suffix="test_queue_2")
         self.assertEqual(TEXT, json.loads(message.body))
@@ -329,7 +331,7 @@ class TestVarysPermissions(unittest.TestCase):
         logger = logging.getLogger("test-exchange")
         self.assertEqual(len(logger.handlers), 1)
 
-    def test_send_nonextant_exchange(self):
+    def test_send_nonexistant_exchange(self):
         self.v.send(TEXT, "test-exchange-3", queue_suffix="test_queue")
         message = self.v.receive("test-exchange-3", queue_suffix="test_queue")
         self.assertEqual(TEXT, json.loads(message.body))

@@ -93,7 +93,9 @@ class Consumer(Process):
                         durable=True,
                     )
                 try:
-                    self._channel.queue_declare(queue=self._queue, durable=True)
+                    self._channel.queue_declare(
+                        queue=self._queue, durable=True, passive=True
+                    )
                 except pika_exceptions.ChannelClosed as e:
                     if e.reply_code != 404:
                         raise
@@ -122,7 +124,6 @@ class Consumer(Process):
                 self._channel.start_consuming()
             except Exception as e:
                 self._log.exception(f"Consumer caught exception: {e}")
-                raise
 
             if self._stopping or self._reconnect_wait < 0:
                 break

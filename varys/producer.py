@@ -140,7 +140,6 @@ class Producer(Process):
                     self._connection.process_data_events(time_limit=1)
             except Exception:
                 self._log.exception("Producer caught exception:")
-                raise
 
             if self._stopping:
                 self._connection.process_data_events(time_limit=0)
