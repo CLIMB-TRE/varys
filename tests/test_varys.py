@@ -251,6 +251,9 @@ class TestVarysPermissions(unittest.TestCase):
             },
         }
 
+        with open(TMP_FILENAME, "w") as f:
+            json.dump(config, f, ensure_ascii=False)
+
         # Setup exchange
         admin_varys = Varys("admin", LOG_FILENAME, config_path=TMP_FILENAME)
         admin_varys.send("setup message", "test-exchange", queue_suffix="test_queue")
