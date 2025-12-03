@@ -8,11 +8,11 @@
             "write": ".*"
         },
         {
-            "configure": "test-exchange\\..*",
-            "read": "test-exchange.*",
+            "configure": "test-exchange\\.\\w*|test-exchange-3\\.\\w*|test-exchange-3",
+            "read": "test-exchange|test-exchange\\.\\w.*|test-exchange-3|test-exchange-3\\.\\w.*",
             "user": "guest2",
             "vhost": "/",
-            "write": "test-exchange"
+            "write": "test-exchange|test-exchange\\.\\w.*|test-exchange-3|test-exchange-3\\.\\w.*"
         }
     ],
     "bindings": [],

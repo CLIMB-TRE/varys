@@ -6,6 +6,7 @@ import json
 import logging
 from varys import Varys
 import pika
+from pika import exceptions as pika_exceptions
 
 DIR = os.path.dirname(__file__)
 LOG_FILENAME = os.path.join(DIR, "test.log")
@@ -302,6 +303,10 @@ class TestVarysPermissions(unittest.TestCase):
         logger = logging.getLogger("test_varys")
         self.assertEqual(len(logger.handlers), 0)
 
+    def test_not_permitted_declare_fail(self):
+        with self.assertRaises(pika_exceptions.ChannelClosed) as cm:
+            self.v.send(TEXT, "test-exchange-2", queue_suffix="test_queue")
+
     def test_send_receive_extant_queue(self):
         self.v.send(TEXT, "test-exchange", queue_suffix="test_queue")
         message = self.v.receive("test-exchange", queue_suffix="test_queue")
@@ -313,6 +318,14 @@ class TestVarysPermissions(unittest.TestCase):
     def test_send_nonextant_queue(self):
         self.v.send(TEXT, "test-exchange", queue_suffix="test_queue_2")
         message = self.v.receive("test-exchange", queue_suffix="test_queue_2")
+        self.assertEqual(TEXT, json.loads(message.body))
+
+        logger = logging.getLogger("test_varys")
+        self.assertEqual(len(logger.handlers), 1)
+
+    def test_send_nonextant_exchange(self):
+        self.v.send(TEXT, "test-exchange-3", queue_suffix="test_queue")
+        message = self.v.receive("test-exchange-3", queue_suffix="test_queue")
         self.assertEqual(TEXT, json.loads(message.body))
 
         logger = logging.getLogger("test_varys")

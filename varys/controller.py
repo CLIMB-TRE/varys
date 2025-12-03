@@ -75,7 +75,7 @@ class Varys:
         self,
         message,
         exchange,
-        queue_suffix=False,
+        queue_suffix="",
         exchange_type="fanout",
         max_attempts=1,
         reconnect_wait=10,
@@ -109,7 +109,7 @@ class Varys:
     def receive(
         self,
         exchange,
-        queue_suffix=False,
+        queue_suffix="",
         timeout=None,
         exchange_type="fanout",
         prefetch_count=5,
