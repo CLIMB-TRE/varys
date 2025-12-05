@@ -47,8 +47,17 @@ class Producer(Process):
 
         attempt = 0
         while attempt < max_attempts:
+            attempt += 1
+
+            if self._connection is None or self._connection.is_closed:
+                self._log.warning(
+                    "Connection is closed, cannot publish message, attempting to reconnect..."
+                )
+                if self._reconnect_wait > 0:
+                    time.sleep(self._reconnect_wait)
+                continue
+
             try:
-                attempt += 1
                 self._log.info(
                     f"Sending message (attempt {attempt}): {json.dumps(message)}"
                 )
