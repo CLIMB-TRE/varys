@@ -128,12 +128,6 @@ class Producer(Process):
                         f"Queue {self._queue} does not exist, creating it..."
                     )
                     self._channel = self._connection.channel()
-                    self._channel.exchange_declare(
-                        exchange=self._exchange,
-                        exchange_type=self._exchange_type,
-                        durable=True,
-                        passive=True,
-                    )
                     self._channel.queue_declare(queue=self._queue, durable=True)
 
                 self._channel.queue_bind(
