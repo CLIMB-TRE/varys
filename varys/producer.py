@@ -160,14 +160,15 @@ class Producer(Process):
         # probably have to say we're closing so run doesn't try to reopen connection
         self._stopping = True
 
-        self._connection.add_callback_threadsafe(
-            functools.partial(self._connection.process_data_events, time_limit=3)
-        )
+        try:
+            self._connection.add_callback_threadsafe(
+                functools.partial(self._connection.process_data_events, time_limit=3)
+            )
 
-        self._connection.add_callback_threadsafe(self._channel.close)
-        self._connection.add_callback_threadsafe(self._connection.close)
+            self._connection.add_callback_threadsafe(self._channel.close)
+            self._connection.add_callback_threadsafe(self._connection.close)
+        finally:
+            self._log.debug("Stopping producer logger...")
+            self._stop_logger()
 
-        self._log.debug("Stopping producer logger...")
-        self._stop_logger()
-
-        self._log.info("Stopped producer as instructed.")
+            self._log.info("Stopped producer as instructed.")

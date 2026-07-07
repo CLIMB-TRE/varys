@@ -129,13 +129,14 @@ class Consumer(Process):
         self._log.info("Stopping consumer as instructed...")
         self._stopping = True
 
-        self._connection.add_callback_threadsafe(self._channel.stop_consuming)
+        try:
+            self._connection.add_callback_threadsafe(self._channel.stop_consuming)
 
-        self._connection.add_callback_threadsafe(self._channel.close)
+            self._connection.add_callback_threadsafe(self._channel.close)
 
-        self._connection.add_callback_threadsafe(self._connection.close)
+            self._connection.add_callback_threadsafe(self._connection.close)
+        finally:
+            self._log.debug("Stopping consumer logger...")
+            self._stop_logger()
 
-        self._log.debug("Stopping consumer logger...")
-        self._stop_logger()
-
-        self._log.info("Stopped consumer as instructed.")
+            self._log.info("Stopped consumer as instructed.")

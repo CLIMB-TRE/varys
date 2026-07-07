@@ -216,9 +216,19 @@ class Varys:
         """Close all open channels."""
 
         for channel in self._in_channels.values():
-            channel.stop()
+            try:
+                channel.stop()
+            except Exception:
+                channel._log.exception(
+                    "Failed to cleanly stop channel, closing anyway"
+                )
             channel.join()
 
         for channel in self._out_channels.values():
-            channel.stop()
+            try:
+                channel.stop()
+            except Exception:
+                channel._log.exception(
+                    "Failed to cleanly stop channel, closing anyway"
+                )
             channel.join()
