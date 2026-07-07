@@ -13,6 +13,13 @@ TMP_HANDLE, TMP_FILENAME = tempfile.mkstemp()
 TEXT = "Hello, world!"
 
 
+def file_handler_count(logger):
+    """Count only the FileHandlers varys itself manages, ignoring any
+    handlers other tools (e.g. pytest's log capture) attach to the same
+    non-propagating logger."""
+    return sum(1 for h in logger.handlers if isinstance(h, logging.FileHandler))
+
+
 class TestVarys(unittest.TestCase):
 
     def tearDown(self):
@@ -41,7 +48,7 @@ class TestVarys(unittest.TestCase):
 
         # check that all file handles were dropped
         logger = logging.getLogger("test_varys")
-        self.assertEqual(len(logger.handlers), 0)
+        self.assertEqual(file_handler_count(logger), 0)
 
     def send_and_receive(self):
         self.v.send(TEXT, "test_varys", queue_suffix="q")
@@ -49,7 +56,7 @@ class TestVarys(unittest.TestCase):
         self.assertEqual(TEXT, json.loads(message.body))
 
         logger = logging.getLogger("test_varys")
-        self.assertEqual(len(logger.handlers), 1)
+        self.assertEqual(file_handler_count(logger), 1)
 
     def manual_ack(self):
 
@@ -301,7 +308,7 @@ class TestVarysPermissions(unittest.TestCase):
         # check that all file handles were dropped for relevant loggers
         for logger_name in ["test-exchange", "test-exchange-2", "test-exchange-3"]:
             logger = logging.getLogger(logger_name)
-            self.assertEqual(len(logger.handlers), 0)
+            self.assertEqual(file_handler_count(logger), 0)
 
     def test_not_permitted_declare_fail(self):
         self.v.send(TEXT, "test-exchange-2", queue_suffix="test_queue")
@@ -322,7 +329,7 @@ class TestVarysPermissions(unittest.TestCase):
         self.assertEqual(TEXT, json.loads(message.body))
 
         logger = logging.getLogger("test-exchange")
-        self.assertEqual(len(logger.handlers), 1)
+        self.assertEqual(file_handler_count(logger), 1)
 
     def test_send_nonexistant_queue(self):
         self.v.send(TEXT, "test-exchange", queue_suffix="test_queue_2")
@@ -330,7 +337,7 @@ class TestVarysPermissions(unittest.TestCase):
         self.assertEqual(TEXT, json.loads(message.body))
 
         logger = logging.getLogger("test-exchange")
-        self.assertEqual(len(logger.handlers), 1)
+        self.assertEqual(file_handler_count(logger), 1)
 
     def test_send_nonexistant_exchange(self):
         self.v.send(TEXT, "test-exchange-3", queue_suffix="test_queue")
@@ -338,7 +345,7 @@ class TestVarysPermissions(unittest.TestCase):
         self.assertEqual(TEXT, json.loads(message.body))
 
         logger = logging.getLogger("test-exchange-3")
-        self.assertEqual(len(logger.handlers), 1)
+        self.assertEqual(file_handler_count(logger), 1)
 
 
 class TestVarysConfig(unittest.TestCase):
