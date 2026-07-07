@@ -81,9 +81,12 @@ class Process(Thread):
 
         # if the filename is already associated with a handler, increase the count
         try:
-            handler_filenames = [fh.baseFilename for fh in self._log.handlers]
+            file_handlers = [
+                fh for fh in self._log.handlers if isinstance(fh, logging.FileHandler)
+            ]
+            handler_filenames = [fh.baseFilename for fh in file_handlers]
             index = handler_filenames.index(log_path)
-            self._log.handlers[index].count += 1
+            file_handlers[index].count += 1
         # otherwise create a new filehandler (with initial count 1)
         except ValueError:
             logging_fh = logging.FileHandler(log_path)
@@ -98,10 +101,14 @@ class Process(Thread):
     def _stop_logger(self):
         log_path = self._log_file
 
-        handler_filenames = [fh.baseFilename for fh in self._log.handlers]
+        file_handlers = [
+            fh for fh in self._log.handlers if isinstance(fh, logging.FileHandler)
+        ]
+        handler_filenames = [fh.baseFilename for fh in file_handlers]
         index = handler_filenames.index(log_path)
-        self._log.handlers[index].count -= 1
+        handler = file_handlers[index]
+        handler.count -= 1
 
-        if self._log.handlers[index].count == 0:
-            handler = self._log.handlers.pop(index)
+        if handler.count == 0:
+            self._log.handlers.remove(handler)
             handler.close()
