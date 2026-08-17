@@ -1,5 +1,5 @@
-import queue
 import os
+import queue
 import time
 
 from varys.consumer import Consumer
@@ -110,6 +110,7 @@ class Varys:
         self,
         exchange,
         queue_suffix="",
+        block=True,
         timeout=None,
         exchange_type="fanout",
         prefetch_count=5,
@@ -142,7 +143,7 @@ class Varys:
 
         try:
             message = self._in_channels[exchange]._message_queue.get(
-                block=True, timeout=timeout
+                block=block, timeout=timeout
             )
             if self.auto_ack:
                 # Only ack a message when it is pulled out of the thread-safe queue and auto_ack is set
@@ -179,6 +180,34 @@ class Varys:
                 break
 
         return messages
+
+    def try_receive(self, exchange: str, queue_suffix: str) -> dict:
+        """
+        Try to receive messages on a given queue bound to supplied exchange.
+        Returns a dict with boolean result for existence of exchange and queue
+        bound to that exchange.
+
+        Does not store Consumer instance.
+
+        args:
+            exchange: name of exchange to check.
+            queue_suffix: name of queue suffix to check bound to provided
+            exchange.
+        """
+        temp_consumer = Consumer(
+            message_queue=queue.Queue(),
+            routing_key=self.routing_key,
+            exchange=exchange,
+            configuration=self._credentials,
+            log_file=self._logfile,
+            log_level=self._log_level,
+            queue_suffix=queue_suffix,
+            exchange_type="fanout",  # this isn't needed for the check
+            prefetch_count=0,  # Not used as no messaged received
+            reconnect_wait=10,
+        )
+
+        return temp_consumer._check_exchange()
 
     def acknowledge_message(self, message):
         """
@@ -219,16 +248,12 @@ class Varys:
             try:
                 channel.stop()
             except Exception:
-                channel._log.exception(
-                    "Failed to cleanly stop channel, closing anyway"
-                )
+                channel._log.exception("Failed to cleanly stop channel, closing anyway")
             channel.join()
 
         for channel in self._out_channels.values():
             try:
                 channel.stop()
             except Exception:
-                channel._log.exception(
-                    "Failed to cleanly stop channel, closing anyway"
-                )
+                channel._log.exception("Failed to cleanly stop channel, closing anyway")
             channel.join()

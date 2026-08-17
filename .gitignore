@@ -5,3 +5,9 @@ tests/test.log
 varys.egg-info/*
 varys_client.egg-info/*
 .pytest_cache*
+.vscode
+# locally generated test certificates (CI generates its own with tls-gen)
+.rabbitmq/*.pem
+.rabbitmq/*.srl
+.rabbitmq/*.csr
+.rabbitmq/*.ext

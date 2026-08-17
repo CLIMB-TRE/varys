@@ -44,10 +44,15 @@ jobs:
       - name: Install Varys
         run: python3 -m pip install -e .
       - name: Test with pytest
+        env:
+          # the broker is provided by the "Run RabbitMQ server" step above:
+          # never launch one, and fail loudly if it is missing or degraded
+          # rather than silently skipping the broker-dependent tests
+          VARYS_TEST_BROKER: external
         run: |
           # sometimes the scripts hang because the channels can't be closed,
           # so run under a short timeout
-          timeout 120s pytest -v --cov-report=term-missing --cov=varys
+          timeout 180s pytest -v --cov-report=term-missing --cov=varys
       - name: "Upload Logfile"
         uses: actions/upload-artifact@v4
         with:

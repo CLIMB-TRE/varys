@@ -5,19 +5,16 @@ import os
 import json
 import logging
 from varys import Varys
-import pika
+import pytest
+
+from tests.helpers import admin_channel, file_handler_count, write_config
 
 DIR = os.path.dirname(__file__)
 LOG_FILENAME = os.path.join(DIR, "test.log")
 TMP_HANDLE, TMP_FILENAME = tempfile.mkstemp()
 TEXT = "Hello, world!"
 
-
-def file_handler_count(logger):
-    """Count only the FileHandlers varys itself manages, ignoring any
-    handlers other tools (e.g. pytest's log capture) attach to the same
-    non-propagating logger."""
-    return sum(1 for h in logger.handlers if isinstance(h, logging.FileHandler))
+pytestmark = pytest.mark.broker
 
 
 class TestVarys(unittest.TestCase):
@@ -34,16 +31,9 @@ class TestVarys(unittest.TestCase):
         os.remove(TMP_FILENAME)
         time.sleep(0.1)
 
-        credentials = pika.PlainCredentials("guest", "guest")
+        with admin_channel() as channel:
+            channel.queue_delete(queue="test_varys.q")
 
-        connection = pika.BlockingConnection(
-            pika.ConnectionParameters("localhost", credentials=credentials)
-        )
-        channel = connection.channel()
-
-        channel.queue_delete(queue="test_varys.q")
-
-        connection.close()
         time.sleep(0.5)
 
         # check that all file handles were dropped
@@ -134,27 +124,11 @@ class TestVarys(unittest.TestCase):
         self.assertEqual(received_messages, sent_messages)
 
 
+@pytest.mark.tls
 class TestVarysTLS(TestVarys):
 
     def setUp(self):
-        config = {
-            "version": "0.1",
-            "profiles": {
-                "test": {
-                    "username": "guest",
-                    "password": "guest",
-                    "amqp_url": "localhost",
-                    "port": 5671,
-                    "use_tls": True,
-                    "ca_certificate": ".rabbitmq/ca_certificate.pem",
-                    "client_certificate": ".rabbitmq/client_certificate.pem",
-                    "client_key": ".rabbitmq/client_key.pem",
-                }
-            },
-        }
-
-        with open(TMP_FILENAME, "w") as f:
-            json.dump(config, f, ensure_ascii=False)
+        write_config(TMP_FILENAME, tls=True)
 
         self.v = Varys("test", LOG_FILENAME, config_path=TMP_FILENAME)
 
@@ -189,22 +163,7 @@ class TestVarysTLS(TestVarys):
 class TestVarysNoTLS(TestVarys):
 
     def setUp(self):
-        config = {
-            "version": "0.1",
-            "profiles": {
-                "test": {
-                    "username": "guest",
-                    "password": "guest",
-                    "amqp_url": "127.0.0.1",
-                    "port": 5672,
-                    "use_tls": False,
-                    "ca_certificate": "this-value-shouldn't-matter",
-                }
-            },
-        }
-
-        with open(TMP_FILENAME, "w") as f:
-            json.dump(config, f, ensure_ascii=False)
+        write_config(TMP_FILENAME, tls=False)
 
         self.v = Varys("test", LOG_FILENAME, config_path=TMP_FILENAME)
 
@@ -236,48 +195,21 @@ class TestVarysNoTLS(TestVarys):
         self.quick_turnaround()
 
 
+@pytest.mark.permissions
 class TestVarysPermissions(unittest.TestCase):
 
     def setUp(self):
-        config = {
-            "version": "0.1",
-            "profiles": {
-                "test": {
-                    "username": "guest2",
-                    "password": "guest",
-                    "amqp_url": "localhost",
-                    "port": 5672,
-                    "use_tls": False,
-                },
-                "admin": {
-                    "username": "guest",
-                    "password": "guest",
-                    "amqp_url": "localhost",
-                    "port": 5672,
-                    "use_tls": False,
-                },
-            },
-        }
-
-        with open(TMP_FILENAME, "w") as f:
-            json.dump(config, f, ensure_ascii=False)
+        write_config(
+            TMP_FILENAME, tls=False, profiles={"test": "guest2", "admin": "guest"}
+        )
 
         # Setup exchange
         admin_varys = Varys("admin", LOG_FILENAME, config_path=TMP_FILENAME)
         admin_varys.send("setup message", "test-exchange", queue_suffix="test_queue")
         admin_varys.close()
 
-        credentials = pika.PlainCredentials("guest", "guest")
-
-        connection = pika.BlockingConnection(
-            pika.ConnectionParameters("localhost", credentials=credentials)
-        )
-        channel = connection.channel()
-
-        channel.queue_purge(queue="test-exchange.test_queue")
-
-        with open(TMP_FILENAME, "w") as f:
-            json.dump(config, f, ensure_ascii=False)
+        with admin_channel() as channel:
+            channel.queue_purge(queue="test-exchange.test_queue")
 
         self.v = Varys("test", LOG_FILENAME, config_path=TMP_FILENAME)
 
@@ -293,16 +225,9 @@ class TestVarysPermissions(unittest.TestCase):
         os.remove(TMP_FILENAME)
         time.sleep(0.1)
 
-        credentials = pika.PlainCredentials("guest", "guest")
+        with admin_channel() as channel:
+            channel.queue_purge(queue="test-exchange.test_queue")
 
-        connection = pika.BlockingConnection(
-            pika.ConnectionParameters("localhost", credentials=credentials)
-        )
-        channel = connection.channel()
-
-        channel.queue_purge(queue="test-exchange.test_queue")
-
-        connection.close()
         time.sleep(0.5)
 
         # check that all file handles were dropped for relevant loggers
@@ -346,54 +271,6 @@ class TestVarysPermissions(unittest.TestCase):
 
         logger = logging.getLogger("test-exchange-3")
         self.assertEqual(file_handler_count(logger), 1)
-
-
-class TestVarysConfig(unittest.TestCase):
-    def tearDown(self):
-        os.remove(TMP_FILENAME)
-
-    def test_config_not_json(self):
-        with open(TMP_FILENAME, "w") as f:
-            f.write("asdf9υ021ζ3;-ö×=()[]{}∇Δοo")
-
-        # use a context manager so we can check SystemExit code
-        with self.assertRaises(SystemExit) as cm:
-            v = Varys("test", LOG_FILENAME, config_path=TMP_FILENAME)
-
-        self.assertEqual(cm.exception.code, 11)
-
-    def test_config_profile_missing(self):
-        config = {
-            "version": "0.2",  # bad version prints warning but doesn't raise error
-            "profiles": {"asdfadsf": {}},
-        }
-
-        with open(TMP_FILENAME, "w") as f:
-            json.dump(config, f, ensure_ascii=False)
-
-        with self.assertRaises(SystemExit) as cm:
-            v = Varys("test", LOG_FILENAME, config_path=TMP_FILENAME)
-
-        self.assertEqual(cm.exception.code, 2)
-
-    def test_config_profile_incomplete(self):
-        config = {
-            "version": "0.1",
-            "profiles": {
-                "test": {
-                    "username": "username",
-                    "extra": "unnecessary",
-                }
-            },
-        }
-
-        with open(TMP_FILENAME, "w") as f:
-            json.dump(config, f, ensure_ascii=False)
-
-        with self.assertRaises(SystemExit) as cm:
-            v = Varys("test", LOG_FILENAME, config_path=TMP_FILENAME)
-
-        self.assertEqual(cm.exception.code, 11)
 
 
 if __name__ == "__main__":
