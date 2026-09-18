@@ -33,7 +33,7 @@ class Varys:
     Methods
     -------
     send(message, exchange, queue_suffix=False, exchange_type="fanout")
-        Either send a message to an existing exchange, or create a new exchange connection and send the message to it. queue_suffix must be provided when sending a message to a queue for the first time to instantiate a new connection.
+        Either send a message to an existing exchange, or create a new exchange connection and send the message to it. queue_suffix must be provided when sending a message to a queue for the first time to instantiate a new connection. Blocks until the broker confirms the message and raises on failure.
     receive(exchange, queue_suffix=False, block=True, timeout=None, exchange_type="fanout", prefetch_count=5)
         Either receive a message from an existing exchange, or create a new exchange connection and receive a message from it. queue_suffix must be provided when receiving a message from a queue for the first time to instantiate a new connection. block determines whether the receive method should block until a message is received or not.
     receive_batch(exchange, queue_suffix=False)
@@ -77,11 +77,16 @@ class Varys:
         exchange,
         queue_suffix="",
         exchange_type="fanout",
-        max_attempts=1,
+        max_attempts=3,
         reconnect_wait=10,
+        ready_timeout=30,
     ):
         """
         Either send a message to an existing exchange, or create a new exchange connection and send the message to it.
+
+        Blocks until the broker has confirmed the message and raises
+        varys.exceptions.VarysPublishError if it could not be delivered, so a caller
+        may acknowledge its own inbound message once this returns.
         """
 
         if not self._out_channels.get(exchange):
@@ -102,9 +107,12 @@ class Varys:
                 reconnect_wait=reconnect_wait,
             )
             self._out_channels[exchange].start()
-            time.sleep(0.3)
 
-        self._out_channels[exchange].publish_message(message, max_attempts=max_attempts)
+        # publish_message waits for the producer to be ready, so there is no need to
+        # guess how long connecting and declaring will take
+        self._out_channels[exchange].publish_message(
+            message, max_attempts=max_attempts, ready_timeout=ready_timeout
+        )
 
     def receive(
         self,
