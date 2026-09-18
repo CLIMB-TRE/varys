@@ -4,7 +4,7 @@ import tempfile
 import os
 import json
 import logging
-from varys import Varys
+from varys import ProducerNotReadyError, Varys
 import pika
 
 DIR = os.path.dirname(__file__)
@@ -311,8 +311,20 @@ class TestVarysPermissions(unittest.TestCase):
             self.assertEqual(file_handler_count(logger), 0)
 
     def test_not_permitted_declare_fail(self):
-        self.v.send(TEXT, "test-exchange-2", queue_suffix="test_queue")
-        time.sleep(0.5)
+        # guest2 may not declare test-exchange-2, so the producer never becomes
+        # ready and send() reports the failure rather than dropping the message.
+        # Keep the timeouts short: the producer cannot recover, so waiting out the
+        # defaults would only make the test slow.
+        with self.assertRaises(ProducerNotReadyError):
+            self.v.send(
+                TEXT,
+                "test-exchange-2",
+                queue_suffix="test_queue",
+                max_attempts=1,
+                ready_timeout=5,
+                reconnect_wait=1,
+            )
+
         with open(LOG_FILENAME, "r") as f:
             loglines = f.readlines()
 
